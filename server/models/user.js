@@ -33,8 +33,8 @@ userSchema.methods.toJSON = function() {
   return user;
 };
 
-userSchema.methods.comparePassword = async (candidatePassword) => {
-  return await bcrypt.compare(candidatePassword, this.password);
+userSchema.methods.comparePassword = async function (password) {
+  return await bcrypt.compare(password, this.password);
 };
 
 userSchema.pre('save', function(next) {
