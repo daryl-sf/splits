@@ -1,145 +1,61 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import Ticker from "./components/Ticker";
-import axios from "axios";
-import Login from "./components/Login";
-import SignUp from "./components/SignUp";
+import { Outlet, NavLink } from "react-router-dom";
+import { useUser } from "./contexts/user";
 
 function App() {
-  const [count, setCount] = useState(0);
-  const [user, setUser] = useState<{ email: string }>();
-
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const name = formData.get("name");
-    const body = { name, date: Date.now() };
-    axios.post("http://localhost:3000/api/races/new", body);
-  };
-
-  const signup = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const username = formData.get("username");
-    const email = formData.get("email");
-    const password = formData.get("password");
-    const body = { email, password, username };
-    const userResponse = await axios.post(
-      "http://localhost:3000/api/users/signup",
-      body,
-      { withCredentials: true }
-    );
-    console.log(userResponse.data);
-    setUser(userResponse.data);
-  };
-
-  const onLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get("email");
-    const password = formData.get("password");
-    const body = { email, password };
-    const userResponse = await axios.post(
-      "http://localhost:3000/api/users/login",
-      body,
-      { withCredentials: true }
-    );
-    console.log(userResponse.data);
-    setUser(userResponse.data);
-  };
-
-  const getMe = async () => {
-    try {
-      const userResponse = await axios.get(
-        "http://localhost:3000/api/users/me",
-        {
-          withCredentials: true,
-        }
-      );
-      console.log(userResponse.data);
-      setUser(userResponse.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      const userResponse = await axios.get(
-        "http://localhost:3000/api/users/logout",
-        {
-          withCredentials: true,
-        }
-      );
-      console.log(userResponse.data);
-      setUser(undefined);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
+  const { user, logout } = useUser();
   return (
-    <>
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 gap-12">
-        <Login />
-        {/* <SignUp /> */}
+    <div className=" bg-gray-200">
+      <header className="p-4 bg-green-600 text-white">
+        <div className="flex items-center justify-between max-w-screen-xl mx-auto">
+          <h1 className="text-2xl font-semibold">
+            <a href="/">Splits</a>
+          </h1>
+          <nav>
+            <ul className="flex gap-4">
+              <li>
+                <NavLink to="/" className="hover:underline p-2">
+                  Home
+                </NavLink>
+              </li>
+              {!user && (
+                <>
+                  <li>
+                    <NavLink to="/signup" className="hover:underline p-2">
+                      Sign Up
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/login" className="hover:underline p-2">
+                      Login
+                    </NavLink>
+                  </li>
+                </>
+              )}
+              {user && (
+                <>
+                  <li>
+                    <NavLink to="/profile" className="hover:underline p-2">
+                      🏃🏼‍♂️ {user.username}
+                    </NavLink>
+                  </li>
+                  <li>
+                    <span
+                      onClick={logout}
+                      className="hover:underline p-2 cursor-pointer"
+                    >
+                      Logout
+                    </span>
+                  </li>
+                </>
+              )}
+            </ul>
+          </nav>
+        </div>
+      </header>
+      <div className="flex items-center justify-center min-h-screen max-w-screen-xl mx-auto bg-gray-100 gap-12 shadow-lg">
+        <Outlet />
       </div>
-      {/* <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <Ticker />
-      <form onSubmit={onSubmit}>
-        <input type="text" name="name" id="name" placeholder="name" />
-        <input type="submit" value="Submit" />
-      </form>
-      {user && <p>{user.email}</p>}
-      <form onSubmit={signup}>
-        <input
-          type="text"
-          name="username"
-          id="username"
-          placeholder="username"
-        />
-        <input type="email" name="email" id="email" placeholder="email" />
-        <input
-          type="password"
-          name="password"
-          id="password"
-          placeholder="password"
-        />
-        <input type="submit" value="Sign up" />
-      </form>
-      <form onSubmit={onLogin}>
-        <input type="text" name="email" id="email" placeholder="email" />
-        <input
-          type="password"
-          name="password"
-          id="password"
-          placeholder="password"
-        />
-        <input type="submit" value="Sign in" />
-      </form>
-      <button onClick={getMe}>Me</button>
-      <button onClick={logout}>Logout</button>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p> */}
-    </>
+    </div>
   );
 }
 

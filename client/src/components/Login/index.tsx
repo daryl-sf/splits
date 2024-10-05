@@ -1,33 +1,12 @@
-import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useUser } from "../../contexts/user";
+import { Link, redirect } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [user, setUser] = useState<{ email: string }>();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const userResponse = await axios.get(
-          "http://localhost:3000/api/users/me",
-          {
-            withCredentials: true,
-          }
-        );
-        console.log(userResponse.data);
-        setUser(userResponse.data);
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    setLoading(true);
-    fetchUser();
-  }, []);
+  const { user, login, logout } = useUser();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -36,19 +15,14 @@ const Login = () => {
       return;
     }
     setError("");
-    const body = { email, password };
-    const userResponse = await axios.post(
-      "http://localhost:3000/api/users/login",
-      body,
-      { withCredentials: true }
-    );
-    console.log(userResponse.data);
-    setUser(userResponse.data);
+    try {
+      await login(email, password);
+      redirect("/");
+    } catch (error) {
+      console.error(error);
+      setError("Invalid email or password");
+    }
   };
-
-  if (loading) {
-    return null;
-  }
 
   return (
     <form
@@ -97,26 +71,25 @@ const Login = () => {
         </>
       )}
       {!user && (
-        <button
-          type="submit"
-          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded w-full"
-        >
-          Log In
-        </button>
+        <>
+          <button
+            type="submit"
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded w-full"
+          >
+            Log In
+          </button>
+          <Link
+            to="/signup"
+            className="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded w-full block text-center"
+          >
+            Sign Up
+          </Link>
+        </>
       )}
       {user && (
         <button
           type="button"
-          onClick={async () => {
-            const userResponse = await axios.get(
-              "http://localhost:3000/api/users/logout",
-              {
-                withCredentials: true,
-              }
-            );
-            console.log(userResponse.data);
-            setUser(undefined);
-          }}
+          onClick={logout}
           className="mt-4 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded w-full"
         >
           Log Out
