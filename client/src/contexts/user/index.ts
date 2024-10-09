@@ -1,5 +1,7 @@
 import { useUser } from "./useUser";
-import { UserProvider, IUser, UserContext, IUserContext } from "./User";
+import { UserProvider, IUser  } from "./User";
+import { UserContext } from "./userContext";
+import type { IUserContext } from "./userContext";
 
 export {
   useUser,

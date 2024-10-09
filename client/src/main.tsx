@@ -5,13 +5,18 @@ import App from "./App.tsx";
 import "./index.css";
 import SignUp from "./components/SignUp";
 import Login from "./components/Login";
-import { UserProvider } from "./contexts/user/User.tsx";
+import { UserProvider } from "./contexts/user";
 import { Home } from "./pages/Home";
+import { Profile } from "./pages/Profile";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: (
+      <UserProvider>
+        <App />
+      </UserProvider>
+    ),
     children: [
       {
         path: "/",
@@ -25,14 +30,16 @@ const router = createBrowserRouter([
         path: "/login",
         element: <Login />,
       },
+      {
+        path: "/profile",
+        element: <Profile />,
+      },
     ],
   },
 ]);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <UserProvider>
-      <RouterProvider router={router} />
-    </UserProvider>
+    <RouterProvider router={router} />
   </StrictMode>
 );

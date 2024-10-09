@@ -6,9 +6,33 @@ import validationMiddleware from '../../middleware/validation.js';
 
 const router = express.Router();
 
+// /api/users/me routes
 router.get('/me', authMiddleware, (req, res) => {
   res.json(req.session.user);
 });
+
+router.put(
+  '/me',
+  authMiddleware,
+  // check('username').isLength({ min: 3, max: 75 }).withMessage('Username must be less than 75 characters long.'),
+  check('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
+  // check('email').isEmail().withMessage('Email must be a valid email address').normalizeEmail(),
+  validationMiddleware,
+  async (req, res) => {
+    const { username, email, password } = req.body;
+    try {
+      const user = await User.findById(req.session.user._id);
+      if (username) user.username = username;
+      if (email) user.email = email;
+      if (password) user.password = password;
+      const updatedUser = await user.save();
+      req.session.user = updatedUser.toJSON();
+      res.json(updatedUser.toJSON());
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  }
+);
 
 router.post(
   '/signup',
@@ -23,7 +47,6 @@ router.post(
       if (existingUser) return res.status(409).json({ message: 'User already exists' });
       const user = new User({ username, password, email });
       const savedUser = await user.save();
-      console.log(user);
       req.session.user = savedUser.toJSON();
       res.status(201).json(savedUser.toJSON());
     } catch (err) {

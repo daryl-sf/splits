@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useUser } from "../../contexts/user";
-import { Link, redirect } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -16,8 +16,7 @@ const Login = () => {
     }
     setError("");
     try {
-      await login(email, password);
-      redirect("/");
+      await login(email, password, "/");
     } catch (error) {
       console.error(error);
       setError("Invalid email or password");
@@ -25,10 +24,7 @@ const Login = () => {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white p-6 rounded shadow-md w-80"
-    >
+    <form onSubmit={handleSubmit} className="w-80">
       <h2 className="text-2xl font-bold mb-6 text-center">Log In</h2>
       {user && <p>{user.email}</p>}
       {error && <p className="text-red-500 text-sm mb-4">{error}</p>}

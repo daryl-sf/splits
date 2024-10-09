@@ -52,7 +52,7 @@ function App() {
           </nav>
         </div>
       </header>
-      <div className="flex items-center justify-center min-h-screen max-w-screen-xl mx-auto bg-gray-100 gap-12 shadow-lg">
+      <div className="flex min-h-screen max-w-screen-xl mx-auto p-10 bg-gray-100 gap-12 shadow-lg">
         <Outlet />
       </div>
     </div>

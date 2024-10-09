@@ -1,5 +1,8 @@
 import axios from "axios";
-import { createContext, useState, FC, ReactNode, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { usersApi } from "../../apis";
+import { useState, FC, ReactNode, useEffect } from "react";
+import { UserContext } from ".";
 
 export interface IUser {
   id: number;
@@ -9,58 +12,54 @@ export interface IUser {
   updatedAt: string;
 }
 
-export interface IUserContext {
-  user: IUser | null;
-  login: (email: string, password: string) => void;
-  logout: () => void;
-  signup: (email: string, password: string, username: string) => void;
-}
-
-export const UserContext = createContext<IUserContext | null>(null);
-
 export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<IUser | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const userResponse = await axios.get(
-          "http://localhost:3000/api/users/me",
-          {
-            withCredentials: true,
-          }
-        );
+        const userResponse = await usersApi.get("/me");
         setUser(userResponse.data);
       } catch (error) {
-        console.log(error);
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          setUser(null);
+        }
       }
     };
     fetchUser();
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const response = await axios.post(
-      "http://localhost:3000/api/users/login",
-      {
-        email,
-        password,
-      },
-      { withCredentials: true }
-    );
+  const login = async (
+    email: string,
+    password: string,
+    redirectURL?: string
+  ) => {
+    const response = await usersApi.post("/login", {
+      email,
+      password,
+    });
 
     if (response.status >= 200 && response.status < 300) {
       setUser(response.data);
+      if (redirectURL) navigate(redirectURL);
     }
   };
 
   const logout = async () => {
-    await axios.get("http://localhost:3000/api/users/logout");
+    await usersApi.get("/logout");
     setUser(null);
+    navigate("/");
   };
 
-  const signup = async (email: string, password: string, username: string) => {
-    const response = await axios.post(
-      "http://localhost:3000/api/users/signup",
+  const signup = async (
+    email: string,
+    password: string,
+    username: string,
+    redirectURL?: string
+  ) => {
+    const response = await usersApi.post(
+      "/signup",
       {
         email,
         password,
@@ -68,6 +67,27 @@ export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
       },
       { withCredentials: true }
     );
+
+    if (response.status >= 200 && response.status < 300) {
+      setUser(response.data);
+      if (redirectURL) navigate(redirectURL);
+    }
+  };
+
+  const updateUser = async ({
+    username,
+    email,
+    password,
+  }: {
+    username?: string;
+    email?: string;
+    password?: string;
+  }) => {
+    const response = await usersApi.put("/me", {
+      username,
+      email,
+      password,
+    });
 
     if (response.status >= 200 && response.status < 300) {
       setUser(response.data);
@@ -81,6 +101,7 @@ export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
         login,
         logout,
         signup,
+        updateUser,
       }}
     >
       {children}
