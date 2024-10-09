@@ -37,6 +37,8 @@ npm run dev
 ```
 
 ### Server
+Ensure a MongoDB instance is running on localhost:27017
+
 ```bash
 cd server
 npm install
