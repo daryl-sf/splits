@@ -7,8 +7,9 @@ import validationMiddleware from '../../middleware/validation.js';
 const router = express.Router();
 
 // /api/users/me routes
-router.get('/me', authMiddleware, (req, res) => {
-  res.json(req.session.user);
+router.get('/me', authMiddleware, async (req, res) => {
+  const user = await User.findById(req.session.user);
+  res.json(user.toJSON());
 });
 
 router.put(
@@ -21,18 +22,35 @@ router.put(
   async (req, res) => {
     const { username, email, password } = req.body;
     try {
-      const user = await User.findById(req.session.user._id);
+      const user = await User.findById(req.session.user);
       if (username) user.username = username;
       if (email) user.email = email;
       if (password) user.password = password;
       const updatedUser = await user.save();
-      req.session.user = updatedUser.toJSON();
+      req.session.user = updatedUser._id;
       res.json(updatedUser.toJSON());
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
   }
 );
+
+router.get('/confirm/:token/:sessionId', async (req, res) => {
+  const { token, sessionId } = req.params;
+  try {
+    if (req.session.id !== sessionId) return res.status(401).json({ message: 'Unauthorized' });
+    const user = await User.findOne({ confirmationToken: token });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    user.confirmedAt = new Date();
+    user.confirmationToken = null;
+    user.confirmed = true;
+    const updatedUser = await user.save();
+    req.session.user = updatedUser._id;
+    res.json(updatedUser.toJSON());
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 router.post(
   '/signup',
@@ -47,7 +65,7 @@ router.post(
       if (existingUser) return res.status(409).json({ message: 'User already exists' });
       const user = new User({ username, password, email });
       const savedUser = await user.save();
-      req.session.user = savedUser.toJSON();
+      req.session.user = savedUser._id;
       res.status(201).json(savedUser.toJSON());
     } catch (err) {
       res.status(500).json({ message: err.message });
@@ -70,7 +88,7 @@ router.post(
 
       if (!isValid) return res.status(401).json({ message: 'Invalid log in details' });
 
-      req.session.user = user.toJSON();
+      req.session.user = user._id;
       res.json(user.toJSON());
     } catch (err) {
       console.error(err);

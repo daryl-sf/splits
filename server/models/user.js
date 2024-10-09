@@ -17,6 +17,18 @@ const userSchema = new mongoose.Schema({
     unique: true,
     required: true
   },
+  confirmedAt: {
+    type: Date,
+    default: null
+  },
+  confirmationToken: {
+    type: String,
+    default: null
+  },
+  confirmed: {
+    type: Boolean,
+    default: false
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -30,6 +42,7 @@ const userSchema = new mongoose.Schema({
 userSchema.methods.toJSON = function() {
   const user = this.toObject();
   delete user.password;
+  delete user.confirmationToken;
   return user;
 };
 
@@ -44,6 +57,7 @@ userSchema.pre('save', function(next) {
   }
 
   user.createdAt = user.createdAt || new Date();
+  user.confirmationToken = user.confirmationToken || Math.random().toString(36).substring(2);
 
   if (!user.isModified('password')) {
     return next();

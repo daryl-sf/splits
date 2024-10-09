@@ -10,6 +10,8 @@ export interface IUser {
   username: string;
   createdAt: string;
   updatedAt: string;
+  confirmed: boolean;
+  confrimedAt: string;
 }
 
 export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
